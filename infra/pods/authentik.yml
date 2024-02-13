@@ -1,0 +1,137 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: authentik
+  labels:
+    name: authentik
+spec:
+  containers:
+    #
+    # PostgreSQL
+    #
+    - name: db
+      image: docker.io/library/postgres:16-alpine
+      ports:
+        - containerPort: 5432
+          hostPort: 10010
+      env:
+        - name: POSTGRES_USER
+          value: authentik
+        - name: POSTGRES_PASSWORD
+          value: whatever-it-takes
+        - name: POSTGRES_DB
+          value: authentik
+      volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: db-pvc
+      resources:
+        # limits:
+        #   memory: '512Mi'
+        #   cpu: '500m'
+    #
+    # Redis
+    #
+    - name: redis
+      image: docker.io/library/redis:alpine
+      args:
+        - redis-server
+      ports:
+        - containerPort: 6379
+      volumeMounts:
+        - mountPath: /data
+          name: redis-pvc
+      resources:
+        # limits:
+        #   memory: '512Mi'
+        #   cpu: '500m'
+    #
+    # Authentik Server
+    #
+    - name: server
+      image: ghcr.io/goauthentik/server:latest
+      args:
+        - server
+      ports:
+        - containerPort: 9000
+          hostPort: 10011
+        - containerPort: 9443
+          hostPort: 10012
+      env:
+        - name: AUTHENTIK_POSTGRESQL__HOST
+          value: '0.0.0.0'
+        - name: AUTHENTIK_POSTGRESQL__USER
+          value: authentik
+        - name: AUTHENTIK_POSTGRESQL__PASSWORD
+          value: whatever-it-takes
+        - name: AUTHENTIK_POSTGRESQL__NAME
+          value: authentik
+        - name: AUTHENTIK_REDIS__HOST
+          value: '0.0.0.0'
+        - name: AUTHENTIK_SECRET_KEY
+          value: 'qq9omzhPwIJ40TiyIqLO0Zvjq57N1amwRqySW4tHOEhxQQATVW'
+      volumeMounts:
+        - mountPath: /media
+          name: authentik-media-pvc
+        - mountPath: /certs
+          name: authentik-certs-pvc
+        - mountPath: /templates
+          name: authentik-templates-pvc
+      resources:
+        requests:
+          memory: '2Gi'
+          cpu: '2'
+        # limits:
+        #   memory: '2Gi'
+        #   cpu: '2'
+    #
+    # Authentik Worker
+    #
+    - name: worker
+      image: ghcr.io/goauthentik/server:latest
+      args:
+        - worker
+      env:
+        - name: AUTHENTIK_POSTGRESQL__HOST
+          value: '0.0.0.0'
+        - name: AUTHENTIK_POSTGRESQL__USER
+          value: authentik
+        - name: AUTHENTIK_POSTGRESQL__PASSWORD
+          value: whatever-it-takes
+        - name: AUTHENTIK_POSTGRESQL__NAME
+          value: authentik
+        - name: AUTHENTIK_REDIS__HOST
+          value: '0.0.0.0'
+        - name: AUTHENTIK_SECRET_KEY
+          value: 'qq9omzhPwIJ40TiyIqLO0Zvjq57N1amwRqySW4tHOEhxQQATVW'
+      volumeMounts:
+        - mountPath: /media
+          name: authentik-media-pvc
+        - mountPath: /certs
+          name: authentik-certs-pvc
+        - mountPath: /templates
+          name: authentik-templates-pvc
+      resources:
+        # limits:
+        #   memory: '512Mi'
+        #   cpu: '500m'
+
+  volumes:
+    - name: db-pvc
+      persistentVolumeClaim:
+        claimName: authentik-db
+
+    - name: redis-pvc
+      persistentVolumeClaim:
+        claimName: authentik-redis
+
+    - name: authentik-media-pvc
+      persistentVolumeClaim:
+        claimName: authentik-media
+
+    - name: authentik-templates-pvc
+      persistentVolumeClaim:
+        claimName: authentik-templates
+
+    - name: authentik-certs-pvc
+      persistentVolumeClaim:
+        claimName: authentik-certs

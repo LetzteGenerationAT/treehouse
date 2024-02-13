@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: baumhaus
+  labels:
+    name: baumhaus
+spec:
+  containers:
+    #
+    # PostgreSQL
+    #
+    - name: db
+      image: docker.io/library/postgres:16-alpine
+      # args:
+      #   - postgres
+      ports:
+        - containerPort: 5432
+          hostPort: 10020
+      env:
+        - name: POSTGRES_USER
+          value: baumhaus
+        - name: POSTGRES_PASSWORD
+          value: whatever-it-takes
+        - name: POSTGRES_DB
+          value: baumhaus
+      volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: db-pvc
+      resources:
+        # limits:
+        #   memory: '512Mi'
+        #   cpu: '500m'
+
+  volumes:
+    - name: db-pvc
+      persistentVolumeClaim:
+        claimName: baumhaus-db

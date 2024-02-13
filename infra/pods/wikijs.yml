@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: wikijs
+  labels:
+    name: wikijs
+spec:
+  containers:
+    #
+    # PostgreSQL
+    #
+    - name: db
+      image: docker.io/library/postgres:16-alpine
+      # args:
+      #   - postgres
+      ports:
+        - containerPort: 5432
+          hostPort: 10030
+      env:
+        - name: POSTGRES_USER
+          value: wikijs
+        - name: POSTGRES_PASSWORD
+          value: whatever-it-takes
+        - name: POSTGRES_DB
+          value: wiki
+      volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: db-pvc
+      resources:
+        # limits:
+        #   memory: '512Mi'
+        #   cpu: '500m'
+    #
+    # Wiki.js
+    #
+    - name: wiki
+      image: ghcr.io/requarks/wiki:2
+      ports:
+        - containerPort: 3000
+          hostPort: 10031
+      env:
+        - name: DB_TYPE
+          value: postgres
+        - name: DB_HOST
+          value: '0.0.0.0'
+        - name: DB_PORT
+          value: '5432'
+        - name: DB_USER
+          value: wikijs
+        - name: DB_PASS
+          value: whatever-it-takes
+        - name: DB_NAME
+          value: wiki
+      resources:
+        requests:
+          memory: '1Gi'
+          cpu: '1500m'
+        # limits:
+        #   memory: '2Gi'
+        #   cpu: '2'
+
+  volumes:
+    - name: db-pvc
+      persistentVolumeClaim:
+        claimName: wikijs-db

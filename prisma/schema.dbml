@@ -1,0 +1,211 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table LuciaUser {
+  id String [pk]
+  oAuthId String [unique, not null]
+  profile Profile
+  profileId String [unique]
+  sessions LuciaSession [not null]
+}
+
+Table LuciaSession {
+  id String [pk]
+  luciaUser LuciaUser [not null]
+  userId String [not null]
+  expiresAt DateTime [not null]
+}
+
+Table Profile {
+  id String [pk]
+  luciaUser LuciaUser
+  rotatingId RotatingId [not null]
+  displayName String [not null]
+  pictureUrl String
+  pronouns String
+  bio String
+  contactOptions Contact [not null]
+  roles Role [not null]
+  allergies String
+  disabilities String
+  dietNotes String
+  signupSource String [not null]
+  interests String[] [not null]
+  buddy Profile
+  buddyId String
+  ringerComment String
+  accessedByRinger RingerAudit [not null]
+  buddyOf Profile [not null]
+  legalName String
+  address String
+  eventRegistrations Event [not null]
+  eventAttendances Event [not null]
+  protestRegistrations Protest [not null]
+  protestAttendances ProtestAttendance [not null]
+  canViewEvents Event [not null]
+  LegalAudit LegalAudit [not null]
+  RingerAudit RingerAudit [not null]
+  createdAt DateTime [default: `now()`, not null]
+  modifiedAt DateTime [not null]
+  acceptedDataPrivacyAt DateTime
+  suspendedAt DateTime
+  deletedAt DateTime
+}
+
+Table Contact {
+  id String [pk]
+  Profile Profile
+  profileId String
+  type String [not null]
+  value String [not null]
+  verified Boolean [not null, default: false]
+  createdAt DateTime [default: `now()`, not null]
+  modifiedAt DateTime [not null]
+}
+
+Table RotatingId {
+  id String [pk]
+  profile Profile [not null]
+  profileId String [not null]
+  createdAt DateTime [default: `now()`, not null]
+}
+
+Table Role {
+  id String [pk]
+  name String [not null]
+  profiles Profile [not null]
+  canEditEvents Event [not null]
+  canEditProtests Protest [not null]
+  canViewEvents Event [not null]
+  canViewProtests Protest [not null]
+}
+
+Table RingerAudit {
+  profile Profile [not null]
+  profileId String [not null]
+  ringer Profile [not null]
+  ringerId String [not null]
+  viewedAt DateTime [default: `now()`, not null]
+
+  indexes {
+    (profileId, ringerId) [pk]
+  }
+}
+
+Table Event {
+  id String [pk]
+  title String [not null]
+  startsAt DateTime
+  endsAt DateTime
+  location String
+  description String
+  organizer Role [not null]
+  organizerId String [not null]
+  public Boolean [not null, default: false]
+  visibleToRoles Role [not null]
+  visibleToProfiles Profile [not null]
+  registrationRequired Boolean [not null, default: false]
+  registrations Profile [not null]
+  checkAttendance Boolean [not null, default: false]
+  attendees Profile [not null]
+  Protest Protest [not null]
+  createdAt DateTime [default: `now()`, not null]
+  modifiedAt DateTime [not null]
+  publishedAt DateTime
+}
+
+Table Protest {
+  id String [pk]
+  type ProtestType [not null]
+  meetupAt DateTime
+  meetupLocation String
+  startsAt DateTime
+  endsAt DateTime
+  location String
+  mediaUrl String
+  organizer Role [not null]
+  organizerId String [not null]
+  public Boolean [not null, default: false]
+  visibleTo Role [not null]
+  registrations Profile [not null]
+  attendees ProtestAttendance [not null]
+  event Event
+  eventId String
+  createdAt DateTime [default: `now()`, not null]
+  modifiedAt DateTime [not null]
+  publishedAt DateTime
+}
+
+Table ProtestAttendance {
+  id String [pk]
+  profile Profile [not null]
+  profileId String [not null]
+  protest Protest [not null]
+  protestId String [not null]
+  protocol Json
+  legalDocuments LegalDocument [not null]
+}
+
+Table LegalDocument {
+  id String [pk]
+  ProtestAttendance ProtestAttendance
+  protestAttendanceId String
+  url String [not null]
+  generatedResponseUrl String
+  accessedByLegal LegalAudit [not null]
+  createdAt DateTime [default: `now()`, not null]
+  modifiedAt DateTime [not null]
+  issuedAt DateTime
+  receivedAt DateTime
+  responseDueAt DateTime
+}
+
+Table LegalAudit {
+  document LegalDocument [not null]
+  documentId String [not null]
+  viewer Profile [not null]
+  viewerId String [not null]
+  viewedAt DateTime [default: `now()`, not null]
+
+  indexes {
+    (documentId, viewerId) [pk]
+  }
+}
+
+Enum ProtestType {
+  Classic
+  Blockade
+  Special
+  Solidarity
+}
+
+Ref: LuciaUser.profileId - Profile.id
+
+Ref: LuciaSession.userId > LuciaUser.id [delete: Cascade]
+
+Ref: Profile.buddyId - Profile.id
+
+Ref: Contact.profileId > Profile.id
+
+Ref: RotatingId.profileId > Profile.id
+
+Ref: RingerAudit.profileId > Profile.id
+
+Ref: RingerAudit.ringerId > Profile.id
+
+Ref: Event.organizerId > Role.id
+
+Ref: Protest.organizerId > Role.id
+
+Ref: Protest.eventId > Event.id
+
+Ref: ProtestAttendance.profileId > Profile.id
+
+Ref: ProtestAttendance.protestId > Protest.id
+
+Ref: LegalDocument.protestAttendanceId > ProtestAttendance.id
+
+Ref: LegalAudit.documentId > LegalDocument.id
+
+Ref: LegalAudit.viewerId > Profile.id

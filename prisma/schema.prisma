@@ -1,0 +1,242 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator dbml {
+  // for visualization https://dbdiagram.io/
+  provider = "prisma-dbml-generator"
+  output = "./"
+  manyToMany = true
+  mapToDbSchema = true
+  includeRelationFields = true
+}
+
+// 
+// Lucia Auth
+// 
+
+model LuciaUser {
+  id        String         @id @default(uuid())
+  oAuthId   String         @unique
+  profile   Profile?       @relation(fields: [profileId], references: [id])
+  profileId String?        @unique
+  sessions  LuciaSession[]
+}
+
+model LuciaSession {
+  id        String    @id @unique
+  luciaUser LuciaUser @relation(references: [id], fields: [userId], onDelete: Cascade)
+  userId    String
+  expiresAt DateTime
+}
+
+// 
+// Profile & Roles
+// 
+
+model Profile {
+  id             String       @id @default(uuid())
+  luciaUser      LuciaUser?
+  rotatingId     RotatingId[]
+  displayName    String
+  pictureUrl     String?
+  pronouns       String?
+  bio            String?
+  contactOptions Contact[]
+  roles          Role[]
+  allergies      String?
+  disabilities   String?
+  dietNotes      String?
+
+  // Onboarding
+  signupSource     String
+  interests        String[]
+  buddy            Profile?      @relation(name: "Buddy", fields: [buddyId], references: [id])
+  buddyId          String?
+  ringerComment    String?
+  accessedByRinger RingerAudit[] @relation("Profile_accessedBy_Ringer")
+  buddyOf          Profile[]     @relation(name: "Buddy")
+
+  // Legal
+  legalName String?
+  address   String?
+
+  // Events
+  eventRegistrations   Event[]             @relation("Profile_registeredFor_Event")
+  eventAttendances     Event[]             @relation("Profile_attended_Event")
+  protestRegistrations Protest[]           @relation("Profile_registeredFor_Protest")
+  protestAttendances   ProtestAttendance[]
+
+  // Permissions
+  canViewEvents Event[] @relation("Profile_canView_Event")
+
+  // Access logs
+  LegalAudit  LegalAudit[]
+  RingerAudit RingerAudit[]
+
+  createdAt             DateTime  @default(now())
+  modifiedAt            DateTime  @updatedAt
+  acceptedDataPrivacyAt DateTime?
+  suspendedAt           DateTime?
+  deletedAt             DateTime?
+}
+
+model Contact {
+  id         String   @id @default(uuid())
+  Profile    Profile? @relation(fields: [profileId], references: [id])
+  profileId  String?
+  type       String
+  value      String
+  verified   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  modifiedAt DateTime @updatedAt
+}
+
+model RotatingId {
+  // For checking registrations & attendance
+  id        String   @id @default(uuid())
+  profile   Profile  @relation(fields: [profileId], references: [id])
+  profileId String
+  createdAt DateTime @default(now())
+}
+
+model Role {
+  id       String    @id @default(uuid())
+  name     String
+  profiles Profile[]
+
+  // Permissions
+  canEditEvents   Event[]
+  canEditProtests Protest[]
+  canViewEvents   Event[]   @relation("Role_canView_Event")
+  canViewProtests Protest[] @relation("Role_canView_Protest")
+}
+
+model RingerAudit {
+  profile   Profile  @relation(name: "Profile_accessedBy_Ringer", fields: [profileId], references: [id])
+  profileId String
+  ringer    Profile  @relation(fields: [ringerId], references: [id])
+  ringerId  String
+  viewedAt  DateTime @default(now())
+
+  @@id([profileId, ringerId])
+}
+
+//
+// Events
+// 
+
+model Event {
+  id          String    @id @default(uuid())
+  title       String
+  startsAt    DateTime?
+  endsAt      DateTime?
+  location    String?
+  description String?
+
+  // Required role to plan/edit the event
+  organizer   Role   @relation(fields: [organizerId], references: [id])
+  organizerId String
+
+  // Visibility
+  public            Boolean   @default(false) // not to be confused with `publishedAt`
+  visibleToRoles    Role[]    @relation("Role_canView_Event")
+  visibleToProfiles Profile[] @relation("Profile_canView_Event")
+
+  // Registration & Attendance
+  registrationRequired Boolean   @default(false)
+  registrations        Profile[] @relation("Profile_registeredFor_Event")
+  checkAttendance      Boolean   @default(false)
+  attendees            Profile[] @relation("Profile_attended_Event")
+
+  // Multiple (or no) protests can happen during one event
+  Protest Protest[]
+
+  createdAt   DateTime  @default(now())
+  modifiedAt  DateTime  @updatedAt
+  publishedAt DateTime? // Published when not null
+}
+
+model Protest {
+  id             String      @id @default(uuid())
+  type           ProtestType
+  meetupAt       DateTime?
+  meetupLocation String?
+  startsAt       DateTime?
+  endsAt         DateTime? // *Planned* end
+  location       String?
+  mediaUrl       String?
+
+  // Required role to plan/edit the event
+  organizer   Role   @relation(fields: [organizerId], references: [id])
+  organizerId String
+
+  // Visibility
+  public    Boolean @default(false) // not to be confused with `publishedAt`
+  visibleTo Role[]  @relation("Role_canView_Protest")
+
+  // Registration & Attendance
+  registrations Profile[]           @relation("Profile_registeredFor_Protest")
+  attendees     ProtestAttendance[]
+
+  // Group multiple protests under one event
+  event   Event?  @relation(fields: [eventId], references: [id])
+  eventId String?
+
+  createdAt   DateTime  @default(now())
+  modifiedAt  DateTime  @updatedAt
+  publishedAt DateTime? // Published when not null
+}
+
+enum ProtestType {
+  Classic // "Slowmarch"
+  Blockade // "Sitzprotest"
+  Special // Creative protests
+  Solidarity
+}
+
+model ProtestAttendance {
+  id        String  @id @default(uuid())
+  profile   Profile @relation(fields: [profileId], references: [id])
+  profileId String
+  protest   Protest @relation(fields: [protestId], references: [id])
+  protestId String
+
+  // Legal Support
+  protocol       Json? // Roles, incidents, repression etc.
+  legalDocuments LegalDocument[]
+}
+
+// 
+// Legal Support
+// 
+
+model LegalDocument {
+  id                   String             @id @default(uuid())
+  ProtestAttendance    ProtestAttendance? @relation(fields: [protestAttendanceId], references: [id])
+  protestAttendanceId  String?
+  url                  String
+  generatedResponseUrl String?
+  accessedByLegal      LegalAudit[]
+
+  createdAt     DateTime  @default(now())
+  modifiedAt    DateTime  @updatedAt
+  issuedAt      DateTime?
+  receivedAt    DateTime?
+  responseDueAt DateTime?
+}
+
+model LegalAudit {
+  document   LegalDocument @relation(fields: [documentId], references: [id])
+  documentId String
+  viewer     Profile       @relation(fields: [viewerId], references: [id])
+  viewerId   String
+  viewedAt   DateTime      @default(now())
+
+  @@id([documentId, viewerId])
+}

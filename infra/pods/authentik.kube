@@ -1,0 +1,17 @@
+[Unit]
+Description=Authentik Identity Provider
+
+[Service]
+LoadCredential=env:./env
+# Extend timeout to 15 minutes, so all images can be downloaded
+TimeoutStartSec=900
+
+[Kube]
+AutoUpdate=registry
+ExitCodePropagation=any
+SetWorkingDirectory=yaml
+Yaml=./authentik.yml
+
+[Install]
+# Start on boot
+WantedBy=multi-user.target default.target
