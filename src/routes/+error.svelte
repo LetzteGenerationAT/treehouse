@@ -12,7 +12,11 @@
 
 <Layout
   backFunction={() => {
-    location.replace('/');
+    if ($page.status !== 404) {
+      location.replace('/');
+    } else {
+      history.back();
+    }
   }}
 >
   <GenericPage>
@@ -57,10 +61,6 @@
 </Shell>
 
 <style lang="postcss">
-  h1 {
-    color: var(--color-primary);
-  }
-
   .icon {
     font-size: 5rem;
     text-align: center;

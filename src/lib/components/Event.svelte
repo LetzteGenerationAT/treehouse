@@ -2,17 +2,25 @@
   import Icon from './Icon.svelte';
 
   export let title: string;
-  export let date: Date | string;
-  export let location: string;
-  export let thumbnailUrl: string | undefined = undefined;
+  export let description: string | null | undefined = undefined;
+  export let date: Date | string | null | undefined = undefined;
+  export let location: string | null | undefined = undefined;
+  export let thumbnailUrl: string | null | undefined = undefined;
   export let href: string;
 </script>
 
 <a {href} class="post" data-thumbnail-url={thumbnailUrl}>
   <h2 class="title">{title}</h2>
+  {#if description}
+    <p>{description}</p>
+  {/if}
   <div class="details">
-    <span class="date"><Icon name="calendar" variant="fill" /> {date}</span>
-    <span class="location"><Icon name="map-pin" variant="fill" /> {location}</span>
+    {#if date}
+      <span class="date"><Icon name="calendar" variant="fill" /> {date.toLocaleString()}</span>
+    {/if}
+    {#if location}
+      <span class="location"><Icon name="map-pin" variant="fill" /> {location}</span>
+    {/if}
   </div>
   <div class="background">
     <img src={thumbnailUrl} alt="" />

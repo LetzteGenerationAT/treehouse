@@ -9,10 +9,10 @@ generator client {
 
 generator dbml {
   // for visualization https://dbdiagram.io/
-  provider = "prisma-dbml-generator"
-  output = "./"
-  manyToMany = true
-  mapToDbSchema = true
+  provider              = "prisma-dbml-generator"
+  output                = "./"
+  manyToMany            = true
+  mapToDbSchema         = true
   includeRelationFields = true
 }
 
@@ -132,12 +132,14 @@ model RingerAudit {
 // 
 
 model Event {
-  id          String    @id @default(uuid())
-  title       String
-  startsAt    DateTime?
-  endsAt      DateTime?
-  location    String?
-  description String?
+  id           String    @id @default(uuid())
+  title        String
+  startsAt     DateTime?
+  endsAt       DateTime?
+  location     String?
+  description  String?
+  thumbnailUrl String?
+  thumbnailAlt String?
 
   // Required role to plan/edit the event
   organizer   Role   @relation(fields: [organizerId], references: [id])

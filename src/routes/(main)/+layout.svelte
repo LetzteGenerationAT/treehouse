@@ -20,7 +20,7 @@
     {
       title: 'Apps',
       icon: 'function',
-      href: '/apps',
+      href: '/applets',
     },
     {
       title: 'Profil',

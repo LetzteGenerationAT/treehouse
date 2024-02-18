@@ -8,11 +8,6 @@
 
   let apps = [
     {
-      name: 'Protesttraining',
-      icon: 'puzzle',
-      href: `${$page.url.pathname}/training`,
-    },
-    {
       name: 'Admin',
       icon: 'admin',
       href: `${$page.url.pathname}/admin`,

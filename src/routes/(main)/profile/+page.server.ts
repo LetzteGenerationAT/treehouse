@@ -30,6 +30,7 @@ export const load: PageServerLoad = async (event) => {
       },
       select: {
         id: true,
+        createdAt: true,
       },
     });
   }

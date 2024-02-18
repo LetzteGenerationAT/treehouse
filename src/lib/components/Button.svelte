@@ -7,7 +7,7 @@
 
   import style from '$lib/styles/theme.module.pcss';
 
-  export let variant: 'primary' | 'secondary' | 'ghost' | undefined = undefined;
+  export let variant: 'primary' | 'secondary' | 'ghost' | null | undefined = undefined;
   export let href: string | undefined = undefined;
   // export let click: MouseEventHandler<any> = hand
   export let type: string | undefined = undefined;
@@ -51,6 +51,7 @@
   on:click
   {autofocus}
   data-sveltekit-replacestate={replaceState}
+  {...$$restProps}
 >
   {#if $$slots.icon}
     <span class="icon">
@@ -100,6 +101,7 @@
       flex-grow: 1;
       display: flex;
       align-items: center;
+      white-space: nowrap;
     }
 
     &:hover {

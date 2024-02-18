@@ -6,12 +6,6 @@
   import style from '$lib/styles/theme.module.pcss';
 </script>
 
-<PageTitle title="Helpdesk" />
-
-<Header direction="column">
-  <h1 class={style.typeTitle}>Helpdesk</h1>
-</Header>
-
 <Content>
   <EmptyState title="No Tickets">
     <p>You haven't created any tickets yet.</p>
