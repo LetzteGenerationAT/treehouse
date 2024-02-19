@@ -1,3 +1,10 @@
+/**
+ * See [Validate Session Cookies][0] for more details about authentication in
+ * Svelte using Lucia
+ * 
+ * [0]: https://lucia-auth.com/guides/validate-session-cookies/sveltekit
+ */
+
 import { lucia } from '$lib/server/auth';
 import type { Handle } from '@sveltejs/kit';
 
