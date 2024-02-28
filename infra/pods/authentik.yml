@@ -10,7 +10,7 @@ spec:
     # PostgreSQL
     #
     - name: db
-      image: docker.io/library/postgres:16-alpine
+      image: docker.io/library/postgres:12-alpine
       ports:
         - containerPort: 5432
           hostPort: 10010
@@ -48,7 +48,7 @@ spec:
     # Authentik Server
     #
     - name: server
-      image: ghcr.io/goauthentik/server:latest
+      image: ghcr.io/goauthentik/server:2024.2
       args:
         - server
       ports:
@@ -87,7 +87,7 @@ spec:
     # Authentik Worker
     #
     - name: worker
-      image: ghcr.io/goauthentik/server:latest
+      image: ghcr.io/goauthentik/server:2024.2
       args:
         - worker
       env:
