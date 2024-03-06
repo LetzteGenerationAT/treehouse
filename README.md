@@ -44,7 +44,7 @@ podman kube play --replace ./infra/pods/authentik.yml
 ## 2. Create a new *OAuth2/OpenID* provider
 ##     - Name: Baumhaus
 ##     - Authorization flow: default-provider-authorization-implicit-consent
-##     - Client type: Public
+##     - Client type: Confidential
 ## 3. Create a new application
 ##     - Name: Baumhaus
 ##     - Slug: baumhaus
@@ -69,8 +69,6 @@ bunx prisma db push
 # Start dev server
 bun run dev
 ```
-
-> **Database will not be persistent!**
 
 ### Bun
 
