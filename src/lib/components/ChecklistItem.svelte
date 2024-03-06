@@ -29,7 +29,7 @@
 
     display: flex;
     align-items: center;
-    border-radius: 1rem;
+    border-radius: 0.5rem;
     padding: 0.75rem;
     gap: 1.125rem;
 

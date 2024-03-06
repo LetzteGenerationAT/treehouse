@@ -183,7 +183,7 @@
   .drawer {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.5rem;
 
     text-align: center;
     color: var(--color-on-surface);
@@ -202,9 +202,11 @@
     @media (min-width: 768px) {
       flex-direction: row-reverse;
       align-items: center;
+      
 
       & p {
-        padding-inline-end: 0.5rem;
+        max-inline-size: 512px;
+        padding-inline: 1.5rem 2.5rem;
         padding-block-end: 1rem;
       }
     }

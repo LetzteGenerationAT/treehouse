@@ -84,6 +84,7 @@
     font-weight: 500;
     text-decoration: none;
     text-align: center;
+    line-height: 1rem;
 
     color: var(--color-on-surface-variant);
     background-color: var(--color-surface-variant);

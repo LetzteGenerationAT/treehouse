@@ -12,11 +12,11 @@
       icon: 'home',
       href: '/',
     },
-    {
-      title: 'Chats',
-      icon: 'chat-1',
-      href: '/chats',
-    },
+    // {
+    //   title: 'Chats',
+    //   icon: 'chat-1',
+    //   href: '/chats',
+    // },
     {
       title: 'Apps',
       icon: 'function',

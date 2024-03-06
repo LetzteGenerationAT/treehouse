@@ -18,8 +18,6 @@
     border-radius: 1.25rem;
     overflow: hidden;
 
-    background-color: white;
-
     pointer-events: none;
     user-select: none;
   }
