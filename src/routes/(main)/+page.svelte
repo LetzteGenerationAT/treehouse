@@ -1,57 +1,109 @@
 <script lang="ts">
+  import GenericPage from '$lib/components/GenericPage.svelte';
   import Section from '$lib/components/Section.svelte';
   import Checklist from '$lib/components/Checklist.svelte';
   import ChecklistItem from '$lib/components/ChecklistItem.svelte';
-  import Divider from '$lib/components/Divider.svelte';
   import Event from '$lib/components/Event.svelte';
   import Post from '$lib/components/Post.svelte';
+  import Button from '$lib/components/Button.svelte';
+  import Icon from '$lib/components/Icon.svelte';
+
+  import type { PageData } from './$types';
+  import { onMount } from 'svelte';
+
+  export let data: PageData;
+
+  let installed = false;
+  let relatedApps: object[] | undefined | never;
+  onMount(async () => {
+    relatedApps = await window.navigator.getInstalledRelatedApps?.();
+    if (relatedApps && relatedApps.length > 0) {
+      installed = true;
+    }
+  });
 </script>
 
-<div class="page">
-  <Section title="Mitmachen">
-    <p>
-      Schön, dass du zu uns gefunden hast. Das sind die nächsten Schritte, um deine Rolle im
-      friedlichen Widerstand zu finden.
-    </p>
-    <Checklist>
-      <ChecklistItem
-        title="Komm zum Infoabend"
-        description="Ein Vortrag über die Klimakatastrophe und die Letzte Generation – mit Fragen und Antworten"
-      />
-      <Divider />
-      <ChecklistItem
-        title="Profil vervollständigen"
-        description="Erzähl uns doch ein bisschen von dir"
-        href="/signup"
-      />
-      <!-- <Divider />
-      <ChecklistItem
-        title="Protesttraining"
-        description="Infos zu Zivilem Widerstand. Hier lernst du auch, wie du dich auf der Straße richtig verhälst."
-      />
-      <Divider />
-      <ChecklistItem
-        title="AG Call"
-        description="Lerne die Menschen in deiner Arbeitsgruppe kennen"
-      />
-      <Divider />
-      <ChecklistItem
-        title="App installieren"
-        description="Offline-Zugriff, Benachrichtigungen zu Fristen und Terminen"
-      /> -->
-    </Checklist>
-  </Section>
+<GenericPage>
+  <!--
+    Show relevant next steps if profile hasn't completed onboarding
+  -->
+  {#if !data.profile?.roles.includes('community.baumhaus.roles.onboarding.completed')}
+    <Section title="Mitmachen">
+      <p>
+        Schön, dass du zu uns gefunden hast! Hier sind auch schon die nächsten Schritte, um deine
+        Rolle im friedlichen Widerstand zu finden.
+      </p>
+      <Checklist>
+        <ChecklistItem
+          title="Komm zum Infoabend"
+          description="Ein Vortrag über die Klimakatastrophe und die Letzte Generation – mit Fragen und Antworten"
+          href="/applets/events"
+          value={data.profile?.roles.includes(
+            'community.baumhaus.groups.letztegenerationat.roles.onboarding.infoabend',
+          )}
+        />
+        <ChecklistItem
+          title="Profil vervollständigen"
+          description="Erzähl uns doch ein bisschen von dir"
+          href="/profile"
+          value={data.profile?.roles.includes(
+            'community.baumhaus.groups.letztegenerationat.onboarding.profile',
+          )}
+        />
+        {#if data.profile}
+          {#if data.profile?.roles.includes('community.baumhaus.groups.letztegenerationat.roles.onboarding.interesse-protest')}
+            <ChecklistItem
+              title="Protesttraining"
+              description="Infos zu Zivilem Widerstand. Hier lernst du auch, wie du dich auf der Straße richtig verhälst."
+              value={data.profile.roles.includes(
+                'community.baumhaus.groups.letztegenerationat.roles.biene',
+              )}
+            />
+          {/if}
+          {#if data.profile?.roles.includes('community.baumhaus.groups.letztegenerationat.roles.onboarding.interesse-ag')}
+            <ChecklistItem
+              title="AG Call"
+              description="Lerne die Menschen in deiner Arbeitsgruppe kennen"
+              value={data.profile.roles.includes(
+                'community.baumhaus.groups.letztegenerationat.roles.ag',
+              )}
+            />
+          {/if}
+          <ChecklistItem
+            title="App installieren"
+            description="Offline-Zugriff, Benachrichtigungen zu Fristen und Terminen"
+            value={installed}
+          />
+        {/if}
+      </Checklist>
+      {#if !data.profile}
+        <Button href="/login" replaceState
+          ><Icon slot="icon" name="login-box" />Ich habe bereits ein Profil</Button
+        >
+      {/if}
+    </Section>
+  {/if}
 
-  <Section title="Events">
-    <Event
-      title="Protesttraining"
-      date="1. Jänner"
-      location="Praterstern, Wien"
-      href=""
-      thumbnailUrl="https://picsum.photos/200"
-    />
-  </Section>
+  <!--
+    Events
+  -->
+  {#if data.events.length > 0}
+    <Section title="Events">
+      {#each data.events as event}
+        <Event
+          title={event.title}
+          date={event.startsAt}
+          location={event.location}
+          href="/applets/events/{event.id}"
+          thumbnailUrl={event.thumbnailUrl}
+        />
+      {/each}
+    </Section>
+  {/if}
 
+  <!--
+    Posts
+  -->
   <Section title="Neuigkeiten">
     <Post
       title="🧡🦺 Protesttage & Massenbesetzung in Wien im Februar 🦺🧡"
@@ -64,14 +116,4 @@
       Möglichkeit zu Handeln – nutzen wir sie gemeinsam!
     </Post>
   </Section>
-</div>
-
-<style lang="postcss">
-  .page {
-    display: flex;
-    flex-direction: column;
-    flex-wrap: wrap;
-    align-content: center;
-    gap: 3rem;
-  }
-</style>
+</GenericPage>
