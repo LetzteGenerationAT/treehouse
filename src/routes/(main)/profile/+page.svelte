@@ -202,7 +202,6 @@
     @media (min-width: 768px) {
       flex-direction: row-reverse;
       align-items: center;
-      
 
       & p {
         max-inline-size: 512px;
