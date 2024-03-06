@@ -26,7 +26,7 @@ Table Profile {
   pronouns String
   bio String
   contactOptions Contact [not null]
-  roles Role [not null]
+  roles String[] [not null]
   allergies String
   disabilities String
   dietNotes String
@@ -44,6 +44,7 @@ Table Profile {
   protestRegistrations Protest [not null]
   protestAttendances ProtestAttendance [not null]
   canViewEvents Event [not null]
+  canViewProtests Protest [not null]
   LegalAudit LegalAudit [not null]
   RingerAudit RingerAudit [not null]
   createdAt DateTime [default: `now()`, not null]
@@ -71,16 +72,6 @@ Table RotatingId {
   createdAt DateTime [default: `now()`, not null]
 }
 
-Table Role {
-  id String [pk]
-  name String [not null]
-  profiles Profile [not null]
-  canEditEvents Event [not null]
-  canEditProtests Protest [not null]
-  canViewEvents Event [not null]
-  canViewProtests Protest [not null]
-}
-
 Table RingerAudit {
   profile Profile [not null]
   profileId String [not null]
@@ -102,16 +93,15 @@ Table Event {
   description String
   thumbnailUrl String
   thumbnailAlt String
-  organizer Role [not null]
-  organizerId String [not null]
+  organizedBy String[] [not null]
   public Boolean [not null, default: false]
-  visibleToRoles Role [not null]
+  visibleToRoles String[] [not null]
   visibleToProfiles Profile [not null]
   registrationRequired Boolean [not null, default: false]
   registrations Profile [not null]
   checkAttendance Boolean [not null, default: false]
   attendees Profile [not null]
-  Protest Protest [not null]
+  protests Protest [not null]
   createdAt DateTime [default: `now()`, not null]
   modifiedAt DateTime [not null]
   publishedAt DateTime
@@ -126,10 +116,10 @@ Table Protest {
   endsAt DateTime
   location String
   mediaUrl String
-  organizer Role [not null]
-  organizerId String [not null]
+  organizedBy String[] [not null]
   public Boolean [not null, default: false]
-  visibleTo Role [not null]
+  visibleToRoles String[] [not null]
+  visibleToProfiles Profile [not null]
   registrations Profile [not null]
   attendees ProtestAttendance [not null]
   event Event
@@ -195,10 +185,6 @@ Ref: RotatingId.profileId > Profile.id
 Ref: RingerAudit.profileId > Profile.id
 
 Ref: RingerAudit.ringerId > Profile.id
-
-Ref: Event.organizerId > Role.id
-
-Ref: Protest.organizerId > Role.id
 
 Ref: Protest.eventId > Event.id
 

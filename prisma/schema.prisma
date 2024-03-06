@@ -48,7 +48,7 @@ model Profile {
   pronouns       String?
   bio            String?
   contactOptions Contact[]
-  roles          Role[]
+  roles          String[]
   allergies      String?
   disabilities   String?
   dietNotes      String?
@@ -73,7 +73,8 @@ model Profile {
   protestAttendances   ProtestAttendance[]
 
   // Permissions
-  canViewEvents Event[] @relation("Profile_canView_Event")
+  canViewEvents   Event[]   @relation("Profile_canView_Event")
+  canViewProtests Protest[] @relation("Profile_canView_Protest")
 
   // Access logs
   LegalAudit  LegalAudit[]
@@ -105,18 +106,6 @@ model RotatingId {
   createdAt DateTime @default(now())
 }
 
-model Role {
-  id       String    @id @default(uuid())
-  name     String
-  profiles Profile[]
-
-  // Permissions
-  canEditEvents   Event[]
-  canEditProtests Protest[]
-  canViewEvents   Event[]   @relation("Role_canView_Event")
-  canViewProtests Protest[] @relation("Role_canView_Protest")
-}
-
 model RingerAudit {
   profile   Profile  @relation(name: "Profile_accessedBy_Ringer", fields: [profileId], references: [id])
   profileId String
@@ -141,13 +130,12 @@ model Event {
   thumbnailUrl String?
   thumbnailAlt String?
 
-  // Required role to plan/edit the event
-  organizer   Role   @relation(fields: [organizerId], references: [id])
-  organizerId String
+  // Roles to plan/edit the event
+  organizedBy String[]
 
   // Visibility
   public            Boolean   @default(false) // not to be confused with `publishedAt`
-  visibleToRoles    Role[]    @relation("Role_canView_Event")
+  visibleToRoles    String[]
   visibleToProfiles Profile[] @relation("Profile_canView_Event")
 
   // Registration & Attendance
@@ -157,7 +145,7 @@ model Event {
   attendees            Profile[] @relation("Profile_attended_Event")
 
   // Multiple (or no) protests can happen during one event
-  Protest Protest[]
+  protests Protest[]
 
   createdAt   DateTime  @default(now())
   modifiedAt  DateTime  @updatedAt
@@ -175,12 +163,12 @@ model Protest {
   mediaUrl       String?
 
   // Required role to plan/edit the event
-  organizer   Role   @relation(fields: [organizerId], references: [id])
-  organizerId String
+  organizedBy String[]
 
   // Visibility
-  public    Boolean @default(false) // not to be confused with `publishedAt`
-  visibleTo Role[]  @relation("Role_canView_Protest")
+  public            Boolean   @default(false) // not to be confused with `publishedAt`
+  visibleToRoles    String[]
+  visibleToProfiles Profile[] @relation("Profile_canView_Protest")
 
   // Registration & Attendance
   registrations Profile[]           @relation("Profile_registeredFor_Protest")
